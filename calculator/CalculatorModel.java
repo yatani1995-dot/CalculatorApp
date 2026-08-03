@@ -242,7 +242,7 @@ public class CalculatorModel {
         }
 
         //演算子入力済であれば→左辺、演算子、右辺
-        if(pendingOp != pendingOp.NONE){
+        if(pendingOp != Operator.NONE){
             return formaterUtill.formatForDisplay(leftOperand, maxDigits) + getOperatorText(pendingOp) + currentInput.toString();
         }
 
