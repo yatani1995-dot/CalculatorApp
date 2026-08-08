@@ -2,6 +2,7 @@ package calculator;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 
 public class FormatterUtil {
     public String formatForDisplay(BigDecimal v, int maxDigits){
@@ -12,21 +13,36 @@ public class FormatterUtil {
             return "0";
         }
 
-        //有効数字８桁に丸め
-        BigDecimal roundedValue = v.round(new MathContext(maxDigits, RoundingMode.DOWN));
-
-        //通常表記の文字列
-        String plainString = roundedValue.toPlainString();
-
-        //.-除く桁数取得
+        /**
+        *   不要な0の削除と有効数字のカウント
+        */
+        String plainString = v.stripTrailingZeros().toPlainString();
         String digitsOnly = plainString.replace(".", "").replace("-", "");
 
-        //有効数字が８桁を超える場合は指数表記にする
+        /**
+        *   有効数字に頭の０が含まれないため調整
+        */
+        int effectiveDigits = maxDigits;
+        if(digitsOnly.startsWith("0")){
+            effectiveDigits = maxDigits - 1;
+        }
+
+        /**
+        *  ８桁に丸め
+        */
+        BigDecimal roundedValue = v.round(new MathContext(effectiveDigits, RoundingMode.DOWN));
+        String result = roundedValue.stripTrailingZeros().toPlainString();
+
+
+        /**
+        *   有効数字が８桁を超える場合は指数表記にする
+        */
         if(digitsOnly.length() > maxDigits){
-            String engineeringString = roundedValue.toString().toLowerCase();
+            DecimalFormat DecimalFormat = new DecimalFormat("0.0000000E0");
+            String engineeringString = DecimalFormat.format(roundedValue).toLowerCase();
             return engineeringString;
         }else{
-            return plainString;
+            return result;
         }
     }
 }
