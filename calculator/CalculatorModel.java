@@ -35,7 +35,9 @@ public class CalculatorModel {
             return false;
         }
 
-        /**０連続入力禁止と0の上書き */
+        /**
+        *   ０連続入力禁止と0の上書き 
+        */
         if(currentInput.toString().equals("0") || currentInput.toString().equals("-0")){
             if (ch == '0') {
                 return false;
@@ -48,19 +50,25 @@ public class CalculatorModel {
             }
         }
 
-        /**答え表示後の数字入力*/
+        /**
+        *   答え表示後の数字入力
+        */
         if(state == InputState.READY && leftOperand != BigDecimal.ZERO){
             currentInput.setLength(0);
         }
 
-        /**演算子を受け入れていたら中身を０にする*/
+        /**
+        *   演算子を受け入れていたら中身を０にする
+        */
         if(state == InputState.INPUT_OPERATOR){
             currentInput.setLength(0);
         }
 
         int length = currentInput.length();
 
-        /** .や-がなければスルー（.や-があれば文字列を減らす） */
+        /**
+        *   .や-がなければスルー（.や-があれば文字列を減らす） 
+        */
         if(currentInput.indexOf(".") != -1){
             length--;
         }
@@ -68,7 +76,9 @@ public class CalculatorModel {
             length--;
         }
 
-        /**8文字以上は不可*/
+        /**
+        *   8文字以上は不可
+        */
         if(length >= maxDigits){
             return false;
         }
@@ -85,12 +95,19 @@ public class CalculatorModel {
         if(state == InputState.ERROR){
             return false;
         }
-        /** .が何個あるか判定。複数あれば0以上になりfalse */
+        /**
+        *   .が何個あるか判定。複数あれば0以上になりfalse 
+        */
         if(currentInput.indexOf(".") >= 0){
             return false;
         }
-        /** 最初に.押下時０を表示 */
+        /** 
+        *   最初に.押下時０を表示（符号がある場合も同様処理）
+        */
         if(currentInput.length() ==0){
+            currentInput.append("0");
+        }
+        if(currentInput.indexOf("-") == 0 && currentInput.length() == 1){
             currentInput.append("0");
         }
         
@@ -181,7 +198,6 @@ public class CalculatorModel {
         }
 
         BigDecimal rightOperand = new BigDecimal(currentInput.toString());
-
         leftOperand = apply(pendingOp, leftOperand, rightOperand);
 
         if(state == InputState.ERROR){
