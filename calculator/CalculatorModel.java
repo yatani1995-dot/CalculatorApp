@@ -102,13 +102,15 @@ public class CalculatorModel {
             return false;
         }
         /** 
-        *   最初に.押下時０を表示（符号がある場合も同様処理）
+        *   最初に.押下時０を表示
         */
         if(currentInput.length() ==0){
             currentInput.append("0");
         }
-        if(currentInput.indexOf("-") == 0 && currentInput.length() == 1){
-            currentInput.append("0");
+
+        //-の後に数値入力がなければ入力不可
+        if(currentInput.length() == 1 && currentInput.charAt(0) == '-'){
+            return false;
         }
         
         currentInput.append('.');
