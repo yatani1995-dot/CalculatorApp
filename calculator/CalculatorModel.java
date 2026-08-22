@@ -15,10 +15,10 @@ public class CalculatorModel {
     private FormatterUtil formaterUtill;
     private ErrorHandler errorHandler;
 
+    /**
+    *   起動時初期状態 
+    */
     public CalculatorModel(){
-        /**
-        *   起動時初期状態 
-        */
         currentInput = new StringBuilder();
         leftOperand = BigDecimal.ZERO;
         pendingOp = Operator.NONE;
@@ -35,13 +35,13 @@ public class CalculatorModel {
             return false;
         }
 
-        /**
-        *   ０連続入力禁止と0の上書き 
-        */
-        if(currentInput.toString().equals("0") || currentInput.toString().equals("-0")){
+        //0連続入力禁止と0の上書き 
+        if(currentInput.toString().equals("0")||currentInput.toString().equals("-0")){
             if (ch == '0') {
                 return false;
-            }else if(ch != '.' ){
+            }else if(ch == '.' ){
+
+            }else{
                 if(currentInput.indexOf("-") == 0){
                     currentInput.setLength(1);
                 }else{
@@ -50,35 +50,24 @@ public class CalculatorModel {
             }
         }
 
-        /**
-        *   答え表示後の数字入力
-        */
-        if(state == InputState.READY && leftOperand != BigDecimal.ZERO){
+        //答え表示後の数字入力
+        if(state == InputState.RESULT){
             currentInput.setLength(0);
         }
 
-        /**
-        *   演算子を受け入れていたら中身を０にする
-        */
+        //演算子を受け入れていたら中身を0にする
         if(state == InputState.INPUT_OPERATOR){
             currentInput.setLength(0);
         }
 
+        //文字数制御 
         int length = currentInput.length();
-
-        /**
-        *   .や-がなければスルー（.や-があれば文字列を減らす） 
-        */
         if(currentInput.indexOf(".") != -1){
             length--;
         }
         if(currentInput.indexOf("-") != -1){
             length--;
         }
-
-        /**
-        *   8文字以上は不可
-        */
         if(length >= maxDigits){
             return false;
         }
@@ -95,15 +84,13 @@ public class CalculatorModel {
         if(state == InputState.ERROR){
             return false;
         }
-        /**
-        *   .が何個あるか判定。複数あれば0以上になりfalse 
-        */
+
+        //.が何個あるか判定。複数あれば0以上になりfalse 
         if(currentInput.indexOf(".") >= 0){
             return false;
         }
-        /** 
-        *   最初に.押下時０を表示
-        */
+
+        //最初に.押下時０追加
         if(currentInput.length() ==0){
             currentInput.append("0");
         }
@@ -112,7 +99,12 @@ public class CalculatorModel {
         if(currentInput.length() == 1 && currentInput.charAt(0) == '-'){
             return false;
         }
-        
+
+        //答え表示後小数点の入力不可
+        if(state == InputState.RESULT){
+            return false;
+        }
+
         currentInput.append('.');
         return true;
     }
@@ -121,27 +113,25 @@ public class CalculatorModel {
     *   演算子処理
     */
     public void inputOperator(Operator op){
-        /** 
-        * 初期状態のみーを符号として受け入れ 
-        */
+        //初期状態のみーを符号として受け入れ
         if(state == InputState.READY && currentInput.length() == 0 && op == Operator.SUBTRACT){
             currentInput.append('-');
             state = InputState.INPUT_NUMBER;
             return;
         }
 
-        /** 
-        * 数値入力がない時は演算子無視 
-        */
-        if(currentInput.length() == 0 || currentInput.toString().equals("0")){
-            return;
-        }
+        if (currentInput.length() == 0||currentInput.toString().equals("-")) {
+        return; 
+    }
 
         BigDecimal inputValue = new BigDecimal(currentInput.toString());
 
-        /** 
-        *   連続計算を含めた挙動 
-        */
+        //数値入力なしは不可
+        if(inputValue.compareTo(BigDecimal.ZERO)== 0){
+            return;
+        }
+
+        //連続計算を含めた挙動
         if(pendingOp == Operator.NONE){
             leftOperand = inputValue;
             
@@ -154,7 +144,7 @@ public class CalculatorModel {
             currentInput.append(result);
         }
 
-        /**演算子の受け入れ*/
+        //演算子の受け入れ
         pendingOp = op;
         state = InputState.INPUT_OPERATOR;
     }
@@ -175,8 +165,7 @@ public class CalculatorModel {
 
             case DIVIDE:
                 try{
-                    BigDecimal result = left.divide(right,maxDigits,RoundingMode.DOWN);
-                    return result;
+                    return left.divide(right,maxDigits,RoundingMode.DOWN);
                 }catch(ArithmeticException e){
                     errorHandler.handle(e);
                     state = InputState.ERROR;
@@ -212,7 +201,7 @@ public class CalculatorModel {
         currentInput.append(result);
 
         pendingOp = Operator.NONE;
-        state = InputState.READY;
+        state = InputState.RESULT;
     }
 
     /**
@@ -255,16 +244,12 @@ public class CalculatorModel {
             return "エラー";
         }
 
-        /**
-        *   数字入力後の演算子表示→左辺、演算子
-        */
+        //数字入力後の演算子表示→左辺、演算子
         if(state == InputState.INPUT_OPERATOR){
             return formaterUtill.formatForDisplay(leftOperand, maxDigits) + getOperatorText(pendingOp);
         }
 
-        /**
-        *   演算子入力済であれば→左辺、演算子、右辺
-        */
+        //演算子入力済であれば→左辺、演算子、右辺
         if(pendingOp != Operator.NONE){
             return formaterUtill.formatForDisplay(leftOperand, maxDigits) + getOperatorText(pendingOp) + currentInput.toString();
         }
@@ -275,3 +260,4 @@ public class CalculatorModel {
         return currentInput.toString();
     }
 }
+
